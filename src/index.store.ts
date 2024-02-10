@@ -3,9 +3,13 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { appReducer, initialAppState } from "src/namespaces/app/app.store";
-import { sessionReducer } from "src/namespaces/session/session.store";
+import {
+  initialSessionState,
+  sessionReducer,
+} from "src/namespaces/session/session.store";
 import { getApp } from "src/namespaces/app/app.api";
 import { concatObjects } from "src/core/support/object.utils";
+import { getSession } from "src/namespaces/session/session.api";
 
 export const makeStore = (preloadedState = null) => {
   return configureStore({
@@ -26,7 +30,10 @@ export const StoreProvider = ({ children }) => {
     const appPayload = await getApp();
     const appState = concatObjects(initialAppState, appPayload);
 
-    setStore(makeStore({ app: appState }));
+    const sessionPayload = await getSession();
+    const sessionState = concatObjects(initialSessionState, sessionPayload);
+
+    setStore(makeStore({ app: appState, session: sessionState }));
   };
 
   useEffect(() => {

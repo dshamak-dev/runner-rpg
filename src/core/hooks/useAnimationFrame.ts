@@ -9,6 +9,7 @@ export const useAnimationFrame = (initialState: boolean = false, callback) => {
   };
   const pause = () => {
     useState(false);
+    setTime(0);
   };
 
   useEffect(() => {

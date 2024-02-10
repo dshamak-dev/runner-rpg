@@ -1,4 +1,4 @@
-import { faPause, faPlay, faRunning } from "@fortawesome/free-solid-svg-icons";
+import { faForward, faForwardStep, faPause, faPlay, faRunning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,7 +15,7 @@ export const SessionNavLink: React.FC<Props> = () => {
   const dispatch = useDispatch();
   const appState = useSelector(appSelector);
   const { scene, query } = appState;
-  const { paused } = useSelector(sessionSelector);
+  const { paused, game } = useSelector(sessionSelector);
 
   const isActiveScene = useMemo(() => {
     return scene === "session";
@@ -23,11 +23,11 @@ export const SessionNavLink: React.FC<Props> = () => {
 
   const icon = useMemo(() => {
     if (!isActiveScene) {
-      return faRunning;
+      return game ? faForwardStep : faRunning;
     }
 
     return paused ? faPlay : faPause;
-  }, [paused]);
+  }, [paused, game]);
 
   const handleClick = useCallback(() => {
     const canToggle = isActiveScene;
