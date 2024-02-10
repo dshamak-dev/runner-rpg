@@ -1,0 +1,133 @@
+:root {
+  --black: 0,0,0;
+  /* grey */
+  --grey-dark: 45, 45, 45;
+  --grey-default: 71, 71, 71;
+  /* white */
+  --white: 255, 255, 255;
+  /* red */
+  --red-dark: 91, 39, 38;
+  --red-light: 255, 110, 110;
+  /* brown */
+  --brown-light: 160, 100, 64;
+  /* green */
+  --green-light: 80, 220, 200;
+  /* yellow */
+  --yelow-ligh: 255, 200, 90;
+
+  /* defaults */
+  --bg-opacity: 1;
+
+  --bg-default: rgba(var(--grey-default), var(--bg-opacity));
+  --bg-secondary: rgba(var(--grey-dark), var(--bg-opacity));
+  --bg-color: var(--bg-secondary);
+
+  --text-opacity: 1;
+  --text-default: rgba(var(--white), var(--text-opacity));
+  --text-secondary: rgba(var(--white), var(--text-opacity));
+  --text-color: var(--text-default);
+
+  --shadow-opacity: 1;
+  --shadow-color: rgba(var(--black), var(--shadow-opacity));
+
+  --border-opacity: 1;
+}
+
+.scene-wrap {
+  @apply: relative;
+}
+
+/* .scene-wrap:before,
+.scene-wrap:after {
+  content: "";
+
+  z-index: -1;
+
+  @apply absolute h-full w-4 opacity-20 bg-white;
+}
+.scene-wrap:before {
+  @apply left-4;
+}
+.scene-wrap:after {
+  @apply right-4;
+} */
+
+.bg-default {
+  background-color: rgba(var(--grey-default), var(--bg-opacity));
+}
+.bg-secondary {
+  background-color: rgba(var(--grey-dark), var(--bg-opacity));
+}
+.bg-highlight {
+  background-color: rgba(var(--red-light), var(--bg-opacity));
+}
+
+.text-default {
+  background-color: rgba(var(--white), var(--text-opacity));
+}
+.text-secondary {
+  background-color: rgba(var(--white), var(--text-opacity));
+}
+.text-highlight {
+  color: rgba(var(--red-light), var(--text-opacity));
+}
+
+.border-highlight {
+  border-color: rgba(var(--red-light), var(--border-opacity));
+}
+
+
+.text-shadow {
+  text-shadow: 1px 1px 3px var(--shadow-color);
+}
+
+.bg-opacity-80 {
+  --bg-opacity: 0.8;
+}
+
+header {
+  background-color: var(--bg-secondary);
+  color: var(--text-default);
+}
+
+.flag {
+  --width: 32px;
+  --bg-color: rgb(var(--red-light));
+  --text-color: rgb(var(--white));
+
+  width: var(--width);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: calc(var(--width) / 2);
+
+  @apply relative py-2 flex justify-center items-center;
+}
+.flag:before,
+.flag:after {
+  content: "";
+
+  @apply absolute;
+}
+
+.flag:before {
+  --width: 140%;
+  --height: 6px;
+
+  width: var(--width);
+  height: var(--height);
+  top: calc(var(--height) * -1);
+  left: calc(50% - var(--width) / 2);
+
+  background-color: var(--bg-color);
+}
+
+.flag:after {
+  width: var(--width);
+  top: 100%;
+  left: 0;
+
+  border: calc(var(--width) / 2) solid transparent;
+  border-left-color: var(--bg-color);
+  border-right-color: var(--bg-color);
+  border-top-color: var(--bg-color);
+}
