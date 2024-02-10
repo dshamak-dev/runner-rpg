@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 export const useAnimationFrame = (initialState: boolean = false, callback) => {
   const [state, setState] = useState(initialState);
-  const [time, setTime] = useState(0);
+  const [lastTime, setTime] = useState(0);
 
   const play = () => {
     useState(true);
@@ -17,18 +17,18 @@ export const useAnimationFrame = (initialState: boolean = false, callback) => {
       return;
     }
 
-    window.requestAnimationFrame((nextTime) => {
-      if (time) {
-        callback(time, nextTime - time);
+    window.requestAnimationFrame((time) => {
+      if (lastTime) {
+        callback(time - lastTime);
       }
 
-      setTime(nextTime);
+      setTime(time);
     });
-  }, [state, time]);
+  }, [state, lastTime]);
 
   useEffect(() => {
     setState(initialState);
-  }, [initialState])
+  }, [initialState]);
 
-  return { play, pause, playing: state, time };
+  return { play, pause, playing: state, lastTime };
 };

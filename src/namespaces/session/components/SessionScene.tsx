@@ -32,7 +32,7 @@ export const SessionScene: React.FC<Props> = ({}) => {
     return new SessionGame(session?.game || {});
   }, [session?.game]);
 
-  const handleUpdate = useCallback((time, delta) => {
+  const handleUpdate = useCallback((delta) => {
     if (game) {
       game.update(delta);
 
@@ -56,7 +56,7 @@ export const SessionScene: React.FC<Props> = ({}) => {
     return !!game;
   }, [session, game, isGameOver]);
 
-  const { time } = useAnimationFrame(isPlaying, handleUpdate);
+  const { lastTime } = useAnimationFrame(isPlaying, handleUpdate);
 
   const handlePlay = () => {
     if (isGameOver) {

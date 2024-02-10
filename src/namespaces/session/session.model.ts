@@ -29,31 +29,46 @@ calculate();
 
 document.addEventListener("resize", calculate);
 
-const spawnRate = [200, 2000];
+const spawnRate = [1500, 4000];
 
 export interface GameObject {
   id: string;
-  rect: { width: 1; height: 1 };
+  rect: { width: number; height: number };
   position: { x: number; y: number };
   type?: string;
 }
 
-const timeFactor = 0.5;
+const timeFactor = 1;
+const Gravity = 0.0015;
+const JUMP_SPEED = 0.45;
+const SPEED = 0.05;
+const characterReact = { width: 8, height: 10 * (1 + scale[1]) };
+const POINTS_PER_DISTANCE = 0.1;
+
+const ITEM_COOLDOWNS = [1000, 3000];
+
+const SPEED_FACTOR = 0.0001;
+const MAX_SPEED = 2.5;
+const MIN_SPEED = 0.8;
 
 export class SessionGame {
   time: number = 0;
   speed: number = 1;
-  gravity: number = 0.2;
   yVelocity: number = 0;
-  jumpPower: number = 4;
   distance: number = 0;
   character: GameObject;
   obstacles: GameObject[] = [];
-  spawnTimeout: number = 0;
+  items: GameObject[] = [];
+  spawnTimeout: number = spawnRate[1];
   gameOver: boolean = false;
+  gameSpeed: number = 0.7;
+  itemsCooldown?: number = 0;
 
-  y: number = 0;
   inAir: boolean = false;
+
+  get score() {
+    return Math.floor(this.distance * POINTS_PER_DISTANCE);
+  }
 
   get width() {
     return width;
@@ -67,27 +82,36 @@ export class SessionGame {
     return unit;
   }
 
-  constructor({ obstacles, character, ...props }) {
+  get jumpPower() {
+    return JUMP_SPEED;
+  }
+
+  get horizontalSpeed() {
+    return SPEED;
+  }
+
+  constructor({ obstacles, items = null, character, ...props }) {
     Object.assign(this, copyObject(props));
 
     this.obstacles = obstacles?.slice() || [];
+    this.items = items ? items.slice() : [];
 
     this.character = character
       ? copyObject(character)
       : {
           id: "character",
-          rect: { width: 1, height: 1 },
-          position: { x: 1.5, y: 0 },
+          rect: characterReact,
+          position: { x: 10, y: 0 },
           type: "",
         };
   }
 
   normalizeDeltaTime(deltaTime) {
-    return this.gameOver ? 0 : Math.min(deltaTime, maxFPS) * timeFactor;
+    return this.gameOver ? 0 : Math.min(deltaTime, maxFPS);
   }
 
-  getVelocity(deltaTime) {
-    return (this.normalizeDeltaTime(deltaTime) * this.speed) / unit;
+  normalizeSpeed(deltaTime) {
+    return deltaTime * this.horizontalSpeed * this.gameSpeed;
   }
 
   update(deltaTime) {
@@ -97,24 +121,21 @@ export class SessionGame {
       return;
     }
 
+    let nextSpeed = this.gameSpeed + SPEED_FACTOR;
+
+    this.gameSpeed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, nextSpeed));
+
     this.time += _delta;
 
-    const deltaSpeed = this.getVelocity(deltaTime);
+    const deltaSpeed = this.horizontalSpeed * _delta;
 
     this.distance += deltaSpeed;
 
     this.updateCharacter(_delta);
 
-    if (this.spawnTimeout <= 0) {
-      this.spawn();
-
-      this.spawnTimeout = randomNumber(spawnRate[0], spawnRate[1], true);
-    } else {
-      this.spawnTimeout = Math.max(0, this.spawnTimeout - _delta);
-    }
-
     this.updateObstacles(_delta);
     this.checkCollisions();
+    this.updateItems(_delta);
   }
 
   jump() {
@@ -128,24 +149,37 @@ export class SessionGame {
 
   updateCharacter(delta) {
     let y = this.character.position.y;
+    const gravity = Gravity;
 
     if (this.inAir) {
-      this.yVelocity -= this.gravity;
+      y += this.yVelocity * delta;
 
-      y += this.gravity * (this.yVelocity > 0 ? 1 : -1);
+      this.yVelocity -= gravity * delta;
     }
 
     if (this.inAir && y <= 0) {
       this.inAir = false;
-      y = 0;
       this.yVelocity = 0;
+
+      y = 0;
     }
 
     this.character.position.y = y;
   }
 
-  updateObstacles(deltaTime) {
-    const velocity = this.getVelocity(deltaTime);
+  updateObstacles(_delta) {
+    if (this.spawnTimeout <= 0) {
+      this.spawn();
+
+      this.spawnTimeout = randomNumber(spawnRate[0], spawnRate[1], true);
+    } else {
+      this.spawnTimeout = Math.max(
+        0,
+        this.spawnTimeout - _delta * this.gameSpeed
+      );
+    }
+
+    const speed = this.normalizeSpeed(_delta);
 
     this.obstacles = this.obstacles
       .map((it) => {
@@ -153,12 +187,12 @@ export class SessionGame {
           ...it,
           position: {
             ...it.position,
-            x: it.position.x - velocity,
+            x: it.position.x - speed,
           },
         };
       })
       .filter((it) => {
-        return it.position.x > -1;
+        return it.position.x > -10;
       });
   }
 
@@ -180,22 +214,71 @@ export class SessionGame {
 
   spawn() {
     const position = {
-      x: widthInUnits + 1,
+      x: 100,
       y: 0,
     };
     const obstacle: GameObject = {
       id: randomId(),
       position,
-      rect: { width: 1, height: 1 },
+      rect: characterReact,
       type: "obstacle",
     };
 
-    const minOffset = 3;
+    const minOffset = obstacle.rect.width * 2;
+    const minX = position.x - minOffset / 2;
 
-    if (this.obstacles.find((it) => it.position.x >= position.x - minOffset)) {
+    const closest = this.obstacles.find((it) => it.position.x >= minX);
+    if (closest) {
       obstacle.position.x += minOffset;
     }
 
     this.obstacles.push(obstacle);
+  }
+
+  updateItems(delta) {
+    if (this.itemsCooldown <= 0) {
+      this.spawnItem();
+
+      this.itemsCooldown = randomNumber(
+        ITEM_COOLDOWNS[0],
+        ITEM_COOLDOWNS[1],
+        true
+      );
+    } else {
+      this.itemsCooldown = Math.max(
+        0,
+        this.itemsCooldown - delta * this.gameSpeed
+      );
+    }
+
+    const speed = this.normalizeSpeed(delta);
+
+    this.items = this.items
+      .map((it) => {
+        return {
+          ...it,
+          position: {
+            ...it.position,
+            x: it.position.x - speed,
+          },
+        };
+      })
+      .filter((it) => {
+        return it.position.x > -10;
+      });
+  }
+
+  spawnItem() {
+    const item: GameObject = {
+      id: randomId(),
+      position: {
+        x: 100,
+        y: 0,
+      },
+      rect: { width: 2, height: 4 },
+      type: "item",
+    };
+
+    this.items.push(item);
   }
 }

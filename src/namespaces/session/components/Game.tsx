@@ -11,7 +11,17 @@ export const Game: React.FC<Props> = ({ game }) => {
     return null;
   }
 
-  const { inAir, width, height, unit, character, obstacles } = game;
+  const {
+    inAir,
+    width,
+    height,
+    unit,
+    character,
+    obstacles,
+    items,
+    gameSpeed,
+    score,
+  } = game;
 
   const styles = useMemo(() => {
     return {
@@ -29,7 +39,10 @@ export const Game: React.FC<Props> = ({ game }) => {
       className={classNames("relative w-full overflow-hidden")}
       style={styles.canvas}
     >
-      <div data-score></div>
+      <div data-score>
+        <div>Speed: {(gameSpeed || 0).toFixed(1)}</div>
+        <div>Score: {score}</div>
+      </div>
       <div
         data-character
         data-air={inAir}
@@ -37,10 +50,12 @@ export const Game: React.FC<Props> = ({ game }) => {
           {
             "--y": character.position.y,
             "--x": character.position.x,
+            "--width": character.rect.width,
+            "--height": character.rect.height,
           } as any
         }
       ></div>
-      {obstacles.map((it, index) => {
+      {[...obstacles, ...items].map((it, index) => {
         return (
           <div
             key={it.id}
@@ -49,6 +64,8 @@ export const Game: React.FC<Props> = ({ game }) => {
               {
                 "--y": it.position.y,
                 "--x": it.position.x,
+                "--width": it.rect.width,
+                "--height": it.rect.height,
               } as any
             }
           ></div>

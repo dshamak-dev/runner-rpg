@@ -3,10 +3,10 @@
     transform: scale(1, 1), translate(0%, 0%);
   }
   40% {
-    transform: scale(1, 1.5), translate(0%, .25%);
+    transform: scale(1, 1.5), translate(0%, 0.25%);
   }
   90% {
-    transform: scale(1, 0.8), translate(0%, .09%);
+    transform: scale(1, 0.8), translate(0%, 0.09%);
   }
   100% {
     transform: scale(1, 1), translate(0%, 0%);
@@ -17,8 +17,6 @@
   --unit: 10;
   --width: 0;
   --height: 0;
-
-  --_unit: calc(var(--unit) * 1px);
 
   width: calc(var(--width) * 1px);
   height: calc(var(--height) * 1px);
@@ -34,21 +32,23 @@
     --y: 0;
     --x: 0;
 
-    width: var(--_unit);
-    height: var(--_unit);
+    width: calc(var(--width) * 1%);
+    height: calc(var(--height) * 1%);
 
-    left: calc(var(--x) * var(--_unit));
-    bottom: calc(var(--y) * var(--_unit));
+    left: calc(var(--x) * 1%);
+    bottom: calc(var(--y) * 1%);
 
     transform: rotate(0deg);
-    transition: bottom, rotate 0.1s ease;
+    transition: rotate 0.1s ease;
 
     @apply absolute z-10 bg-white;
   }
 
-  [data-character] {}
-
   [data-obstacle] {
+    @apply bg-white/50;
+  }
+
+  [data-obstacle="obstacle"] {
     background-color: rgb(var(--red-light));
   }
 
